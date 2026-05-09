@@ -47,6 +47,12 @@ endif()
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED On)
 
+# Boost graph/multi_index headers in the conda toolchain require MPL limits
+# to be explicitly enabled when indexed_by expands to 30 entries.
+add_compile_definitions(BOOST_MPL_CFG_NO_PREPROCESSED_HEADERS
+                        BOOST_MPL_LIMIT_VECTOR_SIZE=30
+                        BOOST_MPL_LIMIT_LIST_SIZE=30)
+
 set(DISABLE_DYNOBENCH_TESTS ON)
 add_subdirectory(dynobench)
 
@@ -200,7 +206,10 @@ target_link_libraries(
 target_link_libraries(
   main_dbrrt
   PUBLIC dbrrt dbastar Eigen3::Eigen
-  PRIVATE fcl dynobench::dynobench ${OMPL_LIBRARIES} Boost::program_options
+  PRIVATE fcl
+          dynobench::dynobench
+          ${OMPL_LIBRARIES}
+          Boost::program_options
           Boost::serialization ${LZ4_LIBRARIES})
 
 target_link_libraries(
@@ -236,7 +245,7 @@ target_link_libraries(
 
 target_link_libraries(
   optimization
-  PUBLIC Eigen3::Eigen dynobench::dynobench
+  PUBLIC crocoddyl::crocoddyl Eigen3::Eigen dynobench::dynobench
   PRIVATE ${CROCODDYL_LIBRARIES} fcl yaml-cpp Boost::program_options
           Boost::serialization libipopt.so)
 

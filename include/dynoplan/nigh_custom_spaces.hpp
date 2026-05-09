@@ -124,6 +124,14 @@ using __SpaceCar1 =
                          nigh::ScaledSpace<nigh::SO2Space<double>>,
                          nigh::ScaledSpace<nigh::SO2Space<double>>>;
 
+using SpaceDubin3D = nigh::CartesianSpace<
+    nigh::L2Space<double, 3>,
+    nigh::ScaledSpace<nigh::SO2Space<double>, std::ratio<1, 2>>>;
+
+using __SpaceDubin3D =
+    nigh::CartesianSpace<nigh::ScaledSpace<nigh::L2Space<double, 3>>,
+                         nigh::ScaledSpace<nigh::SO2Space<double>>>;
+
 // _T will be pointer to something, e.g State*
 template <typename _T> struct NN_quim {
 
@@ -382,6 +390,19 @@ ompl::NearestNeighbors<_T> *nigh_factory(
     __SpaceCar1 space(w(0), w(1), w(2));
     // out = new NearestNeighborsNigh<_T, SpaceQuad3d>(data_to_key);
     out = new NearestNeighborsNigh<_T, __SpaceCar1>(space, data_to_key);
+  } else if (startsWith(name, "dubin_3D")) {
+
+    auto data_to_key = [robot, fun](_T const &m) {
+      using Vector4d = Eigen::Matrix<double, 4, 1>;
+      const ob::State *s = fun(m);
+      Vector4d __x;
+      robot->toEigen(s, __x);
+      return std::tuple(Eigen::Vector3d(__x(0), __x(1), __x(2)), __x(3));
+    };
+
+    DYNO_CHECK_EQ(w.size(), 2, AT);
+    __SpaceDubin3D space(w(0), w(1));
+    out = new NearestNeighborsNigh<_T, __SpaceDubin3D>(space, data_to_key);
   }
 
   CHECK(out, AT);
@@ -566,6 +587,17 @@ ompl::NearestNeighbors<_T> *nigh_factory2(
     __SpaceCar1 space(w(0), w(1), w(2));
     // out = new NearestNeighborsNigh<_T, SpaceQuad3d>(data_to_key);
     out = new NearestNeighborsNigh<_T, __SpaceCar1>(space, data_to_key);
+  } else if (startsWith(name, "dubin_3D")) {
+
+    auto data_to_key = [robot, fun](_T const &m) {
+      using Vector4d = Eigen::Matrix<double, 4, 1>;
+      Vector4d __x = fun(m);
+      return std::tuple(Eigen::Vector3d(__x(0), __x(1), __x(2)), __x(3));
+    };
+
+    DYNO_CHECK_EQ(w.size(), 2, AT);
+    __SpaceDubin3D space(w(0), w(1));
+    out = new NearestNeighborsNigh<_T, __SpaceDubin3D>(space, data_to_key);
   }
 
   CHECK(out, AT);
@@ -686,6 +718,17 @@ ompl::NearestNeighbors<_T> *nigh_factory_t(
     DYNO_CHECK_EQ(w.size(), 3, AT);
     __SpaceCar1 space(w(0), w(1), w(2));
     out = new NearestNeighborsNigh<_T, __SpaceCar1>(space, data_to_key);
+  } else if (startsWith(name, "dubin_3D")) {
+
+    auto data_to_key = [robot, fun, reverse_search](_T const &m) {
+      using Vector4d = Eigen::Matrix<double, 4, 1>;
+      Vector4d __x = fun(m, reverse_search);
+      return std::tuple(Eigen::Vector3d(__x(0), __x(1), __x(2)), __x(3));
+    };
+
+    DYNO_CHECK_EQ(w.size(), 2, AT);
+    __SpaceDubin3D space(w(0), w(1));
+    out = new NearestNeighborsNigh<_T, __SpaceDubin3D>(space, data_to_key);
   }
 
   CHECK(out, AT);

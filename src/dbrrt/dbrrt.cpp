@@ -1693,7 +1693,7 @@ void idbrrt(const dynobench::Problem &problem,
       traj_dbrrt.time_stamp = accumulated_time_filtered;
       info_out.trajs_raw.push_back(traj_dbrrt);
       info_out.solved_raw = true;
-      if (info_out_local.solved_raw) {
+      if (options_dbrrt.do_optimization) {
         Result_opti result;
         dynobench::Trajectory traj_out_opti;
         trajectory_optimization(problem, traj_dbrrt, options_trajopt,
@@ -1710,6 +1710,14 @@ void idbrrt(const dynobench::Problem &problem,
           info_out.cost = traj_out_opti.cost;
           finished = true;
         }
+      } else {
+        traj_out = traj_dbrrt;
+        traj_out.time_stamp = accumulated_time_filtered;
+        traj_out.cost = robot->ref_dt * traj_out.actions.size();
+        info_out.trajs_opt.push_back(traj_out);
+        info_out.solved = true;
+        info_out.cost = traj_out.cost;
+        finished = true;
       }
     }
 
